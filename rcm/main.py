@@ -2,8 +2,8 @@
 Main entry point for running the RCM Capacity Planning Model.
 """
 
-from model import RCMModel
-from optimizer import RCMOptimizer, print_optimization_results
+from rcm.model import RCMModel
+from rcm.optimizer import RCMOptimizer, print_optimization_results
 
 def main():
     """Run the RCM model and display results."""
