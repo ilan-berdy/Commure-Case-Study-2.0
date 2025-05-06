@@ -119,6 +119,12 @@ class RCMOptimizer:
         total_submission_analysts = self._calculate_total_active_analysts(month, 'submission') + new_submission_var
         total_denial_analysts = self._calculate_total_active_analysts(month, 'denial') + new_denial_var
         
+        # Calculate US staff costs
+        us_labor_cost = (
+            cfg.US_STAFF['delivery_lead']['count'] * cfg.US_STAFF['delivery_lead']['hourly_rate'] +
+            cfg.US_STAFF['clinical_advisor']['count'] * cfg.US_STAFF['clinical_advisor']['hourly_rate']
+        ) * cfg.TIME_CONSTANTS['hours_per_day'] * cfg.TIME_CONSTANTS['days_per_month']
+        
         # Objective: Minimize total cost
         total_cost = (
             total_submission_analysts * cfg.LABOR_COSTS['base_analyst'] * cfg.TIME_CONSTANTS['hours_per_day'] * cfg.TIME_CONSTANTS['days_per_month'] +
@@ -126,7 +132,9 @@ class RCMOptimizer:
             managers * cfg.LABOR_COSTS['manager'] * cfg.TIME_CONSTANTS['hours_per_day'] * cfg.TIME_CONSTANTS['days_per_month'] +
             (total_submission_analysts + total_denial_analysts) * cfg.OVERHEAD_COSTS['per_analyst'] +
             managers * cfg.OVERHEAD_COSTS['per_manager'] +
-            cfg.OVERHEAD_COSTS['fixed_monthly']
+            cfg.OVERHEAD_COSTS['fixed_monthly'] +
+            us_labor_cost +  # Add US labor costs
+            cfg.OVERHEAD_COSTS['us_overhead']  # Add US overhead
         )
         self.model += total_cost
         
@@ -163,19 +171,19 @@ class RCMOptimizer:
                 self.cohorts['denial'][month] = int(new_denial_var.value())
         
         # Calculate financial metrics
-        labor_cost = (
+        india_labor_cost = (
             total_submission_analysts.value() * cfg.LABOR_COSTS['base_analyst'] * cfg.TIME_CONSTANTS['hours_per_day'] * cfg.TIME_CONSTANTS['days_per_month'] +
             total_denial_analysts.value() * cfg.LABOR_COSTS['base_analyst'] * cfg.TIME_CONSTANTS['hours_per_day'] * cfg.TIME_CONSTANTS['days_per_month'] +
             managers.value() * cfg.LABOR_COSTS['manager'] * cfg.TIME_CONSTANTS['hours_per_day'] * cfg.TIME_CONSTANTS['days_per_month']
         )
         
-        overhead_cost = (
+        india_overhead_cost = (
             (total_submission_analysts.value() + total_denial_analysts.value()) * cfg.OVERHEAD_COSTS['per_analyst'] +
             managers.value() * cfg.OVERHEAD_COSTS['per_manager'] +
             cfg.OVERHEAD_COSTS['fixed_monthly']
         )
         
-        total_cost = labor_cost + overhead_cost
+        total_cost = india_labor_cost + india_overhead_cost + us_labor_cost + cfg.OVERHEAD_COSTS['us_overhead']
         revenue = monthly_claims * cfg.CLAIMS_PARAMS['average_claim_value'] * cfg.CLAIMS_PARAMS['revenue_percentage']
         gross_margin = (revenue - total_cost) / revenue if revenue > 0 else 0
         
@@ -185,12 +193,14 @@ class RCMOptimizer:
             'submission_analysts': int(total_submission_analysts.value()),
             'denial_analysts': int(total_denial_analysts.value()),
             'managers': int(managers.value()),
-            'labor_cost': labor_cost,
-            'overhead_cost': overhead_cost,
+            'india_labor_cost': india_labor_cost,
+            'india_overhead_cost': india_overhead_cost,
+            'us_labor_cost': us_labor_cost,
+            'us_overhead_cost': cfg.OVERHEAD_COSTS['us_overhead'],
             'total_cost': total_cost,
             'revenue': revenue,
             'gross_margin': gross_margin,
-            'cohorts': self.cohorts.copy()  # Include cohort information in results
+            'cohorts': self.cohorts.copy()
         }
     
     def optimize(self) -> List[Dict]:
@@ -208,11 +218,13 @@ class RCMOptimizer:
             'submission_analysts': month_1_staff['submission_analysts'],
             'denial_analysts': month_1_staff['denial_analysts'],
             'managers': month_1_staff['managers'],
-            'labor_cost': month_1_staff['labor_cost'],
-            'overhead_cost': month_1_staff['overhead_cost'],
+            'india_labor_cost': month_1_staff['india_labor_cost'],
+            'india_overhead_cost': month_1_staff['india_overhead_cost'],
+            'us_labor_cost': month_1_staff['us_labor_cost'],
+            'us_overhead_cost': month_1_staff['us_overhead_cost'],
             'total_cost': month_1_staff['total_cost'],
             'revenue': 0,
-            'margin': 0,
+            'gross_margin': 0,
             'cohorts': month_1_staff['cohorts']
         })
         
@@ -230,11 +242,13 @@ class RCMOptimizer:
                 'submission_analysts': staff['submission_analysts'],
                 'denial_analysts': staff['denial_analysts'],
                 'managers': staff['managers'],
-                'labor_cost': staff['labor_cost'],
-                'overhead_cost': staff['overhead_cost'],
+                'india_labor_cost': staff['india_labor_cost'],
+                'india_overhead_cost': staff['india_overhead_cost'],
+                'us_labor_cost': staff['us_labor_cost'],
+                'us_overhead_cost': staff['us_overhead_cost'],
                 'total_cost': staff['total_cost'],
                 'revenue': staff['revenue'],
-                'margin': staff['gross_margin'],
+                'gross_margin': staff['gross_margin'],
                 'cohorts': staff['cohorts']
             })
         
@@ -246,58 +260,56 @@ def print_optimization_results(results: List[Dict]):
     print("=" * 50)
     
     for result in results:
-        month = result['month']
-        print(f"\nMonth {month}:")
-        print(f"Active Accounts: {result['active_accounts']}")
+        print(f"\nMonth {result['month']}")
+        print("-" * 30)
         
-        # Print cohort information
+        print(f"Active Accounts: {result['active_accounts']:,}")
+        print(f"Monthly Claims: {result['active_accounts'] * cfg.CLAIMS_PARAMS['claims_per_account']:,}")
+        
+        print("\nIndia Team:")
+        print(f"Submission Analysts: {result['submission_analysts']:,}")
+        print(f"Denial Analysts: {result['denial_analysts']:,}")
+        print(f"Managers: {result['managers']:,}")
+        
+        print("\nUS Support Team:")
+        print(f"Delivery Lead: {cfg.US_STAFF['delivery_lead']['count']} FTE")
+        print(f"Clinical Advisor: {cfg.US_STAFF['clinical_advisor']['count']} FTE")
+        
         print("\nCohort Analysis:")
-        print("Submission Analysts by Cohort:")
+        print("Submission Analysts:")
         for cohort_month, count in result['cohorts']['submission'].items():
-            if month == 0:
-                # Month 0 is training, show initial productivity
-                print(f"  Month {cohort_month} cohort: {count} analysts (in training)")
-                print(f"    Effective daily capacity: 0 claims (training period)")
-            else:
-                months_since_hire = month - cohort_month
-                if months_since_hire >= 0:  # Only show productivity for hired cohorts
-                    if months_since_hire >= 2:
-                        productivity = cfg.PRODUCTIVITY_RAMP_UP['submission']['productivity'][2]
-                    else:
-                        productivity = cfg.PRODUCTIVITY_RAMP_UP['submission']['productivity'][months_since_hire]
-                    effective_capacity = count * productivity * cfg.PRODUCTIVITY_RAMP_UP['submission']['base_throughput']
-                    print(f"  Month {cohort_month} cohort: {count} analysts ({productivity*100:.0f}% productive)")
-                    print(f"    Effective daily capacity: {effective_capacity:.1f} claims")
+            if cohort_month <= result['month']:
+                months_since_hire = result['month'] - cohort_month
+                if months_since_hire >= 2:
+                    productivity = cfg.PRODUCTIVITY_RAMP_UP['submission']['productivity'][2]
+                else:
+                    productivity = cfg.PRODUCTIVITY_RAMP_UP['submission']['productivity'][months_since_hire]
+                effective_capacity = count * productivity * cfg.PRODUCTIVITY_RAMP_UP['submission']['base_throughput']
+                print(f"  Month {cohort_month} cohort: {count:,} analysts ({productivity*100:.0f}% productivity)")
+                print(f"    Effective daily capacity: {effective_capacity:,.0f} claims")
         
-        print("\nDenial Analysts by Cohort:")
+        print("\nDenial Analysts:")
         for cohort_month, count in result['cohorts']['denial'].items():
-            if month == 0:
-                # Month 0 is training, show initial productivity
-                print(f"  Month {cohort_month} cohort: {count} analysts (in training)")
-                print(f"    Effective daily capacity: 0 denials (training period)")
-            else:
-                months_since_hire = month - cohort_month
-                if months_since_hire >= 0:  # Only show productivity for hired cohorts
-                    if months_since_hire >= 2:
-                        productivity = cfg.PRODUCTIVITY_RAMP_UP['denial']['productivity'][2]
-                    else:
-                        productivity = cfg.PRODUCTIVITY_RAMP_UP['denial']['productivity'][months_since_hire]
-                    effective_capacity = count * productivity * cfg.PRODUCTIVITY_RAMP_UP['denial']['base_throughput']
-                    print(f"  Month {cohort_month} cohort: {count} analysts ({productivity*100:.0f}% productive)")
-                    print(f"    Effective daily capacity: {effective_capacity:.1f} denials")
-        
-        print("\nStaffing Levels:")
-        print(f"Total Submission Analysts: {result['submission_analysts']}")
-        print(f"Total Denial Analysts: {result['denial_analysts']}")
-        print(f"Managers: {result['managers']}")
+            if cohort_month <= result['month']:
+                months_since_hire = result['month'] - cohort_month
+                if months_since_hire >= 2:
+                    productivity = cfg.PRODUCTIVITY_RAMP_UP['denial']['productivity'][2]
+                else:
+                    productivity = cfg.PRODUCTIVITY_RAMP_UP['denial']['productivity'][months_since_hire]
+                effective_capacity = count * productivity * cfg.PRODUCTIVITY_RAMP_UP['denial']['base_throughput']
+                print(f"  Month {cohort_month} cohort: {count:,} analysts ({productivity*100:.0f}% productivity)")
+                print(f"    Effective daily capacity: {effective_capacity:,.0f} denials")
         
         print("\nFinancial Metrics:")
-        print(f"Labor Cost: ${result['labor_cost']:,.2f}")
-        print(f"Overhead Cost: ${result['overhead_cost']:,.2f}")
+        print(f"India Labor Cost: ${result['india_labor_cost']:,.2f}")
+        print(f"India Overhead Cost: ${result['india_overhead_cost']:,.2f}")
+        print(f"US Labor Cost: ${result['us_labor_cost']:,.2f}")
+        print(f"US Overhead Cost: ${result['us_overhead_cost']:,.2f}")
         print(f"Total Cost: ${result['total_cost']:,.2f}")
         print(f"Revenue: ${result['revenue']:,.2f}")
-        print(f"Gross Margin: {result['margin']*100:.1f}%")
-        print("-" * 50)
+        print(f"Gross Margin: {result['gross_margin']*100:.1f}%")
+        
+        print("\n" + "=" * 50)
 
 if __name__ == "__main__":
     # Create optimizer instance

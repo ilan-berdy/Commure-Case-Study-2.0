@@ -47,7 +47,8 @@ LABOR_COSTS = {
 OVERHEAD_COSTS = {
     'per_analyst': 50,           # $50 per analyst per month
     'per_manager': 100,          # $100 per manager per month
-    'fixed_monthly': 10000       # $10,000 fixed monthly costs
+    'fixed_monthly': 10000,      # $10,000 fixed monthly costs
+    'us_overhead': 7500          # $7,500 fixed monthly US overhead
 }
 
 # Financial targets
@@ -135,5 +136,17 @@ PRODUCTIVITY_RAMP_UP = {
             2: 1.00   # Third month onward: 100%
         },
         'base_throughput': 40   # denials per analyst per day at full productivity
+    }
+}
+
+# US Staff parameters
+US_STAFF = {
+    'delivery_lead': {
+        'count': 1,
+        'hourly_rate': 60.00  # $60/hour
+    },
+    'clinical_advisor': {
+        'count': 1,
+        'hourly_rate': 70.00  # $70/hour
     }
 } 
