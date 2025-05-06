@@ -24,7 +24,4 @@ def main():
     # Save results to CSV
     df = model.generate_report()
     df.to_csv('results/rcm_model_results.csv', index=False)
-    print("\nResults saved to results/rcm_model_results.csv")
-
-if __name__ == "__main__":
-    main() 
+    print("\nResults saved to results/rcm_model_results.csv") 
