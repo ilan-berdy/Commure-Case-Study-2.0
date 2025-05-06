@@ -116,4 +116,24 @@ QUALITY_METRICS = {
     'target_error_rate': 0.02,         # 2% target error rate
     'target_efficiency': 0.95,         # 95% target efficiency
     'target_recovery_rate': 0.70       # 70% target recovery rate
+}
+
+# Productivity ramp-up parameters
+PRODUCTIVITY_RAMP_UP = {
+    'submission': {
+        'productivity': {
+            0: 0.80,  # First month on production: 80%
+            1: 0.90,  # Second month: 90%
+            2: 1.00   # Third month onward: 100%
+        },
+        'base_throughput': 100  # claims per analyst per day at full productivity
+    },
+    'denial': {
+        'productivity': {
+            0: 0.80,  # First month on production: 80%
+            1: 0.90,  # Second month: 90%
+            2: 1.00   # Third month onward: 100%
+        },
+        'base_throughput': 40   # denials per analyst per day at full productivity
+    }
 } 
