@@ -1,0 +1,41 @@
+Commure Activation Lead Case Study
+Feel free to present your ideas in a memo format, and use whatever tools help bring your thinking to life—whether that’s flowcharts, spreadsheets, diagrams, or anything else. The goal is to put together a clear and actionable scale-up plan that’s grounded in data and realistic to implement within 30 days.
+Revenue Cycle Background:
+For this case study, you only need a high level understanding of Revenue Cycle Management. It is the process of collecting clinical information, submitting claims to insurance companies, and collecting + reporting revenue back to the customer (healthcare practice). You can treat it as an abstract, simplified manufacturing process with the following (rough) substeps:
+1. Extract Encounters - find appointments / encounters that the doctor completed in their EHR (electronic health record).
+2. Submit Claims - manually punch in the details per appointment into an insurance portal for submission.
+3. Reconcile - per-claim manually (phone calls, and insurance portals), check with insurance companies (14-30 days after submission) whether the claim was approved or not, and how much was paid out.
+4. Denial Analysis - from reconciliation, review the reasons that insurance denied given claims
+5. Resubmission - make fixes to the denied claims and resubmit
+6. Revenue Reporting - continuous reporting of revenue + operational metrics back to the customer
+Assume that steps 1-5 each take roughly 2-5 minutes per claim. Assume that entry level analyst wages in India are utilized across the board, and manager wages (40-50% higher) where needed. Assume Commure generates its revenue by collecting 5% of all revenue from the practice.
+Case Study:
+You are a General Manager (GM) in charge of 100 Commure Revenue Cycle Management (RCM) accounts representing $10mm ARR in aggregate to the company ($200mm in total claims collected for practices - 5% take rate). Most of these accounts are mid-sized healthcare practices, focusing on a certain specialty.
+● Assume that the average dollar per-encounter for our customer is $200 (of which we collect 5%).
+● Assume that the software automations of the product are not built out at all, and everything is to be done manually using our labor-force in India and manual submissions into insurance company portals.
+● Assume that we have full access to the doctor’s EHR, along with all necessary insurance portals. Assume that all 100 accounts will all onboard over the course of 1 quarter (3 months), 10 in the first month, 30 in the second, and 60 in the third.
+● Assume customer SLAs of submissions being made within 5-days of a doctor’s appointment, and denials being worked within 3-days of response from payer.
+Additionally, the customer will expect a dollar approval rate of 90% for the charged
+amount across all encounters.
+● Assume the target margin profile of the business is ~60% gross margin.
+Process and Org build-out:
+Talk us through how you will scale up the entire operation: hires necessary in the US, manual
+labor-force in India, for extracting + submitting, claims, quality control, measuring metrics,
+customer service, etc. Should include capacity planning, manager / pod structures, tools and
+systems you want to use, meeting cadences, metric ownership, etc.
+Assume you have 1 month to do the requisite hiring in the US / India prior to the start of the
+quarter, and then hiring may continue through the quarter.
+Ensure that customers have access to necessary information and are happy with the delivery of
+service, and describe the process / hires / systems by which this is ensured. Go over the
+necessary capacity planning, quality control models, and overall scale up + monitoring of the
+process.
+Metrics and KPIs:
+What are the key metrics you are tracking to judge performance of onboarding, implementation,
+and ongoing operation of the accounts? What metrics matter to you as the GM, along with your
+direct reports. Describe in detail (feel free to use something like https://www.tryeraser.com/ or
+https://excalidraw.com/ to create a whiteboard diagram) what metrics dashboarding you would
+use, and how would you set it up?
+Execution:
+The next step is to clearly describe what you would do in your first 7, 30, 60, and 90 days in
+setting up this operation. Assume the India office has to be built out from scratch, and our first
+customers are ready to go. How are you structuring your days, and what are your first steps?
